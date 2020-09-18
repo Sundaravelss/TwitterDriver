@@ -15,6 +15,9 @@ from abc import ABC
 import pandas as pd
 import os
 from .functions import *
+from bs4 import BeautifulSoup as soup
+import requests
+
 
 class Driver(ABC):
 
@@ -256,15 +259,14 @@ class TwitterDriver(Driver):
         
         if(csv_parser==True):
             df=pd.DataFrame(result)
-            if(os.path.exists(f"./{key}.csv")):         # If an old dataset exists, we concatenate it with the new data.
-                old_data = pd.read_csv(f"./{key}.csv")
+            if(os.path.exists(f"./{key}.xlsx")):         # If an old dataset exists, we concatenate it with the new data.
+                old_data = pd.read_excel(f"./{key}.xlsx")
                 full_data = pd.concat([old_data, df], axis=0)				
                 full_data.drop_duplicates(inplace=True)		
                 full_data.reset_index(drop=True, inplace=True)
-                full_data.to_csv(f"./{key}.csv", index=False)
-                
+                full_data.to_excel(f"./{key}.xlsx", index=True,index_label='id')   
             else:
-                df.to_csv(f"./{key}.csv",index=False)
+                df.to_excel(f"./{key}.xlsx",index=True,index_label='id')
         return(result[:n])
         
     def get_comment_by_keys(self,keys,n,scroll,csv_parser=False):
@@ -311,24 +313,60 @@ class TwitterDriver(Driver):
         return(list(set(users)))
     def get_images(self,user_id,scroll,nb_images):
         self.driver.get("https://twitter.com/"+str(user_id))
-        WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.XPATH, ".//div[@class='css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws']")))
-        urls=[]
-        li=[]
-        for i in range(scroll):
-            time.sleep(2)
-            #list of tweets
-            c=self.driver.find_elements_by_xpath(".//article[@class ='css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg']")
-            links = self.driver.find_elements_by_xpath("//a[@href]")
-            for link in links:
-                if 'photo' in link.get_attribute("href") and user_id in link.get_attribute("href"):
-                    li.append(link.get_attribute("href"))
-            urls+=li
-            try:
+        try:
+            WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.XPATH, ".//div[@class='css-1dbjc4n r-18u37iz r-1wtj0ep r-156q2ks r-1mdbhws']")))
+            urls=[]
+            li=[]
+            for i in range(scroll):
+                time.sleep(2)
+                #list of tweets
+                c=self.driver.find_elements_by_xpath(".//article[@class ='css-1dbjc4n r-1loqt21 r-18u37iz r-1ny4l3l r-o7ynqc r-6416eg']")
+                links = self.driver.find_elements_by_xpath("//a[@href]")
+                for link in links:
+                    if 'status' in link.get_attribute("href") and 'photo' in link.get_attribute("href") and user_id in link.get_attribute("href"):
+                        li.append(link.get_attribute("href"))
+                urls+=li
                 self.driver.execute_script("arguments[0].scrollIntoView();",c[len(c)-1])
-            except:
-                pass
-        urls=list(set(urls))
-        return(urls[:nb_images])
+        
+            urls=list(set(urls))
+            #print(urls)
+            #remove multiple urls for same status
+            urls=[url for url in urls if 'photo/1' in url]
+            img_urls=[]
+            for url in urls:
+                self.driver.get(url)
+                try:
+                    WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, ".//div[@class='css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg']")))
+                    html=self.driver.find_element_by_xpath(".//div[@class ='css-1dbjc4n r-9x6qib r-1ylenci r-1phboty r-rs99b7 r-156q2ks r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg']").get_attribute('innerHTML')
+                except:
+                    continue
+                txt=soup(html,'html.parser')
+                #get all img tags
+                images=txt.findAll('img')
+                for image in images:
+                    src=image['src']
+                    #to add large to the url to get hd images
+                    if 'small' in src:
+                        img_urls.append(src[:-5]+"large")
+                    elif 'medium' in src:
+                        img_urls.append(src[:-6]+"large")
+                    else:
+                        img_urls.append(src[:-7]+"large")
+            if not os.path.exists(f'./images/{user_id}'):
+                try:
+                    os.mkdir(f'./images/{user_id}')
+                except OSError:
+                    print ("Creation of the directory failed")
+            #download image
+            for i,img_url in enumerate(img_urls):
+                img_content=requests.get(img_url).content
+                file=open(f'./images/{user_id}/image{i+1}.jpg','wb')
+                file.write(img_content)
+                
+            print('Image Downloaded')
+            return(img_urls[:nb_images])
+        except:
+            pass
         
             
             
