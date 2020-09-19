@@ -350,6 +350,8 @@ class TwitterDriver(Driver):
                         img_urls.append(src[:-5]+"large")
                     elif 'medium' in src:
                         img_urls.append(src[:-6]+"large")
+                    elif 'large' in src:
+                        img_urls.append(src)
                     else:
                         img_urls.append(src[:-7]+"large")
             if not os.path.exists(f'./images/{user_id}'):
