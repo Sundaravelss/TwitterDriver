@@ -354,7 +354,8 @@ class TwitterDriver(Driver):
                         img_urls.append(src)
                     else:
                         img_urls.append(src[:-7]+"large")
-            if not os.path.exists(f'./images/{user_id}'):
+            #create image directory if not exists and img_urls list is not empty
+            if not os.path.exists(f'./images/{user_id}') and img_urls:
                 try:
                     os.mkdir(f'./images/{user_id}')
                 except OSError:
