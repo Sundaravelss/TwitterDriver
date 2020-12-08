@@ -11,17 +11,15 @@ def main(url,n,s,usr,pwd):
     
     p = TwitterDriver()
     p.get_browser(usr,pwd)
-    p.get_user_info(url)
+    #p.get_user_info(url)
     #p.get_publications(url,n)
     
     dic=p.user_info
     print(dic)
     dic1={"posts":p.posts}
     dic.update(dic1)
-    if s=="True":
-        save_data(dic,dic["name"],r"C:\Users\Hamza\Desktop\Twitter_Crawler\Twitter_Crawler\data\.")
-    else:
-        pass
+    save_data(dic,dic["name"],r"C:\Users\Hamza\Desktop\Twitter_Crawler\Twitter_Crawler\datalll\.")
+
 
         
 if __name__=='__main__':

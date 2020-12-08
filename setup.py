@@ -10,8 +10,8 @@ with open("README.md", "r", encoding="utf-8") as readme_file:
 setuptools.setup(
     name="twitterCrawler",
     version = "1.0.0",
-    author="Hamza Ghanmi",
-    author_email="hamza.ghanmi56@gmail.com",
+    author="Sundar",
+    author_email="svelselvaraj@kaisensdata.fr",
     license="MIT",
     description="A bot which scrapes the description and posts details from Twitter user's profile",
     long_description_content_type="text/markdown",
