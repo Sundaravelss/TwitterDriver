@@ -23,7 +23,7 @@ from sys import platform
 
 class Driver(ABC):
 
-    def get_user_info(self,driver,url):
+    def get_user_info(self,user_id):
         pass
     
     def get_publications(self,user_id,nb_tweets,nb_comments,scroll,comments):
@@ -94,7 +94,7 @@ class TwitterDriver(Driver):
     def get_user_info(self,user_id):
         """function that takes the user id and return info about it"""
         self.driver.get("https://twitter.com/"+str(user_id))
-        #WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.XPATH, ".//div[@class='css-901oao r-18jsvk2 r-1qd0xha r-1b6yd1w r-1vr29t4 r-ad9z0x r-bcqeeo r-qvutc0']")))
+        WebDriverWait(self.driver, 20).until(EC.visibility_of_element_located((By.XPATH, ".//div[@class='css-901oao r-18jsvk2 r-1qd0xha r-1b6yd1w r-1vr29t4 r-ad9z0x r-bcqeeo r-qvutc0']")))
         #c=self.driver.find_element_by_xpath(".//div[@class='css-1dbjc4n r-1habvwh']").text
         try:
             name=self.driver.find_element_by_xpath(".//div[@class='css-901oao r-18jsvk2 r-1qd0xha r-1b6yd1w r-1vr29t4 r-ad9z0x r-bcqeeo r-qvutc0']").text
@@ -463,7 +463,10 @@ class TwitterDriver(Driver):
                 #break when Next slide is not there
                 break
         #get all big image urls
-        url_elements=self.driver.find_elements_by_xpath(".//div[contains(@class ,'css-1dbjc4n r-1p0dtai') and contains(@class,'r-ipm5af r-417010')]/img")
+        #url_elements=self.driver.find_elements_by_xpath(".//div[contains(@class ,'css-1dbjc4n r-1p0dtai r-1mlwlqe') and contains(@class,'r-ipm5af r-417010')]/img")
+        
+        url_elements=self.driver.find_elements_by_xpath(".//div[@class='css-1dbjc4n r-1niwhzg r-vvn4in r-u6sd8q r-ehq7j7 r-1p0dtai r-1pi2tsx r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-13qz1uu r-1wyyakw']/following-sibling::img")
+        #url_elements=self.driver.find_elements_by_xpath(".//div[@class ='css-1dbjc4n r-1p0dtai r-1mlwlqe r-16l9doz r-1d2f490 r-ywje51 r-dnmrzs r-1udh08x r-u8s1d r-zchlnj r-ipm5af r-417010']/img")
         for url in url_elements:
             img_url=url.get_attribute('src')
             img_urls.append(img_url)
